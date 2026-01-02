@@ -1,0 +1,19 @@
+# Docker
+*.log
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# MediaMTX
+recordings/
+*.mp4
+*.mkv
+

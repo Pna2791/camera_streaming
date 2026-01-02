@@ -1,0 +1,5 @@
+FROM bluenviron/mediamtx:latest
+
+# Install ffmpeg for transcoding
+RUN apk add --no-cache ffmpeg
+

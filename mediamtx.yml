@@ -1,0 +1,40 @@
+# MediaMTX Configuration
+# This file configures MediaMTX to convert RTSP to WebRTC
+
+# General settings
+logLevel: info
+logDestinations: [stdout]
+logFile: ""
+
+# RTSP settings
+rtspAddress: :8554
+rtspTransports: [tcp]  # Use TCP only for more reliable streaming (reduces packet loss)
+
+# WebRTC settings
+webrtcAddress: :8555
+webrtcEncryption: no  # Set to 'yes' if you have SSL certificates
+# webrtcServerKey: ""
+# webrtcServerCert: ""
+
+# Paths configuration
+paths:
+  camera:
+    # Source: RTSP stream from IP camera
+    # NOTE: To limit to 5 FPS, configure your camera to output 5 FPS in its settings
+    # OR use the transcoder container (see docker-compose.yml transcoder service)
+    source: rtsp://admin:L22CC619@192.168.1.8:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif
+    rtspTransport: tcp  # Force TCP for reliability (reduces packet loss and stuttering)
+    sourceOnDemand: no
+    sourceOnDemandStartTimeout: 10s
+    sourceOnDemandCloseAfter: 10s
+    
+    # Note: If stuttering persists, try reducing camera resolution or frame rate
+    # in the camera settings, or use the transcoder script to optimize the stream
+    
+    # Recording (optional)
+    record: no
+    
+    # Authentication (optional - uncomment if needed)
+    # sourceUser: admin
+    # sourcePass: password
+

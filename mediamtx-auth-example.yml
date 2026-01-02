@@ -1,0 +1,25 @@
+# MediaMTX Configuration with Authentication Example
+# Copy these settings to mediamtx.yml if you want to protect the WebRTC endpoint
+
+# Paths configuration with authentication
+paths:
+  camera:
+    # Source: RTSP stream from IP camera
+    # Include camera credentials in the RTSP URL if needed:
+    # source: rtsp://camera-user:camera-pass@192.168.1.8:554/stream
+    source: rtsp://admin:L22CC619@192.168.1.8:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif
+    rtspTransport: automatic
+    
+    # MediaMTX WebRTC endpoint authentication (protects browser access)
+    # Uncomment and set these to require username/password for WebRTC access:
+    # readUser: webuser
+    # readPass: webpass
+    
+    # Or use IP-based access control:
+    # readIPs: [127.0.0.1, 192.168.1.0/24]  # Allow localhost and local network
+    
+    sourceOnDemand: no
+    sourceOnDemandStartTimeout: 10s
+    sourceOnDemandCloseAfter: 10s
+    record: no
+

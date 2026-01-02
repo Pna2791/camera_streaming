@@ -1,0 +1,48 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"  # RTSP
+      - "8555:8555"  # WebRTC
+      - "1935:1935"  # RTMP (optional)
+      - "8888:8888"  # HTTP API (optional)
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    working_dir: /
+    # MediaMTX will look for mediamtx.yml in working directory by default
+    # No command override needed - it finds the config automatically
+    network_mode: host  # Use host network for better performance
+
+  # Optional: FFmpeg transcoder to limit frame rate to 5 FPS
+  # Uncomment this service if you want MediaMTX to transcode the stream to 5 FPS
+  # Then update mediamtx.yml camera source to: rtsp://localhost:8556/camera
+  # transcoder:
+  #   image: jrottenberg/ffmpeg:4.4-alpine
+  #   container_name: camera-transcoder
+  #   restart: unless-stopped
+  #   network_mode: host
+  #   command: >
+  #     -rtsp_transport tcp
+  #     -i rtsp://admin:L22CC619@192.168.1.8:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif
+  #     -r 5
+  #     -c:v libx264
+  #     -preset ultrafast
+  #     -b:v 500k
+  #     -c:a aac
+  #     -b:a 64k
+  #     -f rtsp
+  #     rtsp://localhost:8556/camera
+
+  web:
+    image: nginx:alpine
+    container_name: camera-streaming-web
+    restart: unless-stopped
+    ports:
+      - "8180:80"
+    volumes:
+      - ./front-end:/usr/share/nginx/html:ro
+    depends_on:
+      - mediamtx
+
