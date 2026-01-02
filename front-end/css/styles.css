@@ -137,7 +137,7 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: white;
+    /* background: white; */
     border-radius: 8px;
     border: 1px solid #e9ecef;
 }
@@ -289,10 +289,80 @@ header h1 {
     align-items: center;
     gap: 10px;
     margin-bottom: 8px;
+    position: relative;
+}
+
+.printer-menu-container {
+    position: relative;
+}
+
+.printer-menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2em;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.printer-menu-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.printer-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 150px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.printer-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #495057;
+    transition: background 0.2s;
+}
+
+.printer-menu-item:hover {
+    background: #f8f9fa;
+}
+
+.printer-menu-item-danger {
+    color: #dc3545;
+}
+
+.printer-menu-item-danger:hover {
+    background: #fff5f5;
+    color: #c82333;
 }
 
 .printer-icon {
-    font-size: 1.5em;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .printer-name {

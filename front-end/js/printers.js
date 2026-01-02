@@ -121,45 +121,62 @@ class PrintersManager {
             scanProgress.style.display = 'none';
 
             if (data.success && data.printers && data.printers.length > 0) {
-                // Show results
-                scanResultsContent.innerHTML = `
-                    <p style="margin: 0 0 10px 0; color: #495057; font-size: 0.9em;">
-                        Found <strong>${data.discovered}</strong> printer(s) in range ${data.scannedRange}:
-                    </p>
-                    <div style="margin-bottom: 10px;">
-                        <button 
-                            id="addAllPrintersBtn" 
-                            class="btn-add-all"
-                            style="width: 100%; padding: 8px 12px; font-size: 0.9em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;"
-                        >
-                            ➕ Add All Printers
-                        </button>
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        ${data.printers.map(printer => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 6px; border: 1px solid #dee2e6;">
-                                <div>
-                                    <div style="font-weight: 600; color: #343a40;">${printer.name}</div>
-                                    <div style="font-size: 0.85em; color: #6c757d; font-family: monospace;">${printer.ip}:80</div>
+                // Filter out printers that already exist in the list
+                const existingIps = new Set(this.printers.map(p => p.ip));
+                const newPrinters = data.printers.filter(printer => !existingIps.has(printer.ip));
+                
+                if (newPrinters.length === 0) {
+                    // All printers already exist
+                    scanResultsContent.innerHTML = `
+                        <p style="margin: 0; color: #6c757d; font-size: 0.9em;">
+                            All discovered printers are already in your list.
+                        </p>
+                    `;
+                } else {
+                    // Show results
+                    scanResultsContent.innerHTML = `
+                        <p style="margin: 0 0 10px 0; color: #495057; font-size: 0.9em;">
+                            Found <strong>${newPrinters.length}</strong> new printer(s) in range ${data.scannedRange}:
+                            ${data.printers.length > newPrinters.length ? ` (${data.printers.length - newPrinters.length} already in list)` : ''}
+                        </p>
+                        <div style="margin-bottom: 10px;">
+                            <button 
+                                id="addAllPrintersBtn" 
+                                class="btn-add-all"
+                                style="width: 100%; padding: 8px 12px; font-size: 0.9em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;"
+                            >
+                                ➕ Add All Printers
+                            </button>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            ${newPrinters.map(printer => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 6px; border: 1px solid #dee2e6;">
+                                    <div>
+                                        <div style="font-weight: 600; color: #343a40;">${printer.name}</div>
+                                        <div style="font-size: 0.85em; color: #6c757d; font-family: monospace;">${printer.ip}:80</div>
+                                    </div>
+                                    <button 
+                                        class="btn-add-discovered" 
+                                        data-ip="${printer.ip}" 
+                                        data-name="${printer.name}"
+                                        style="padding: 6px 12px; font-size: 0.85em; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;"
+                                    >
+                                        Add
+                                    </button>
                                 </div>
-                                <button 
-                                    class="btn-add-discovered" 
-                                    data-ip="${printer.ip}" 
-                                    data-name="${printer.name}"
-                                    style="padding: 6px 12px; font-size: 0.85em; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;"
-                                >
-                                    Add
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+                            `).join('')}
+                        </div>
+                    `;
+                }
 
                 // Add event listener to "Add All" button
                 const addAllBtn = document.getElementById('addAllPrintersBtn');
                 if (addAllBtn) {
                     addAllBtn.addEventListener('click', async () => {
-                        await this.addAllPrinters(data.printers);
+                        // Use filtered list (newPrinters) instead of all printers
+                        const existingIps = new Set(this.printers.map(p => p.ip));
+                        const newPrinters = data.printers.filter(printer => !existingIps.has(printer.ip));
+                        await this.addAllPrinters(newPrinters);
                         // Close scan results after adding
                         setTimeout(() => {
                             scanResults.style.display = 'none';
@@ -272,7 +289,7 @@ class PrintersManager {
             return `
             <div class="printer-item" data-printer-id="${printer.id}">
                 <div class="printer-item-header">
-                    <span class="printer-icon">🖨️</span>
+                    <img src="imgs/3d_printer.png" alt="Printer" class="printer-icon">
                     <div style="flex: 1;">
                         <div class="printer-name">${printer.name}</div>
                         <div class="printer-ip">${printer.ip}:80</div>
@@ -283,6 +300,19 @@ class PrintersManager {
                         ` : ''}
                     </div>
                     <span class="printer-status ${printer.status}" title="${printer.status === 'online' ? 'Online' : 'Offline'}"></span>
+                    <div class="printer-menu-container">
+                        <button class="printer-menu-btn" onclick="event.stopPropagation(); printersManager.toggleMenu('${printer.id}')" title="More options">
+                            ⋯
+                        </button>
+                        <div class="printer-menu" id="menu-${printer.id}" style="display: none;">
+                            <button class="printer-menu-item" onclick="event.stopPropagation(); printersManager.editPrinterName('${printer.id}')">
+                                ✏️ Edit Name
+                            </button>
+                            <button class="printer-menu-item printer-menu-item-danger" onclick="event.stopPropagation(); printersManager.removePrinter('${printer.id}')">
+                                🗑️ Remove
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 ${printer.status === 'online' && printer.temperature ? `
                     <div class="printer-details">
@@ -300,12 +330,9 @@ class PrintersManager {
                         ` : ''}
                     </div>
                 ` : ''}
-                <div style="margin-top: 8px; display: flex; gap: 5px;">
-                    <button class="btn-open" onclick="event.stopPropagation(); printersManager.openPrinterDashboard('${printer.ip}')" style="padding: 4px 8px; font-size: 0.75em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1;">
+                <div style="margin-top: 8px;">
+                    <button class="btn-open" onclick="event.stopPropagation(); printersManager.openPrinterDashboard('${printer.ip}')" style="width: 100%; padding: 8px 12px; font-size: 0.85em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
                         🔗 Open Dashboard
-                    </button>
-                    <button class="btn-remove" onclick="event.stopPropagation(); printersManager.removePrinter('${printer.id}')" style="padding: 4px 8px; font-size: 0.75em; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Remove
                     </button>
                 </div>
             </div>
@@ -319,6 +346,30 @@ class PrintersManager {
                 this.selectPrinter(printerId);
             });
         });
+
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.printer-menu-container')) {
+                container.querySelectorAll('.printer-menu').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+            }
+        });
+    }
+
+    toggleMenu(printerId) {
+        const menu = document.getElementById(`menu-${printerId}`);
+        if (!menu) return;
+
+        // Close all other menus
+        document.querySelectorAll('.printer-menu').forEach(m => {
+            if (m.id !== `menu-${printerId}`) {
+                m.style.display = 'none';
+            }
+        });
+
+        // Toggle current menu
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     }
 
     selectPrinter(printerId) {
@@ -396,6 +447,28 @@ class PrintersManager {
             const printStats = printerData.result?.status?.print_stats || {};
             const displayStatus = printerData.result?.status?.display_status || {};
             
+            // Get virtual_sdcard for accurate printing progress
+            const virtualSdcardResponse = await fetch(`${apiUrl}/printer/objects/query?virtual_sdcard=null`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(3000)
+            });
+            
+            let printProgress = null;
+            let isPrintingActive = false;
+            let currentFileName = null;
+            
+            if (virtualSdcardResponse.ok) {
+                const virtualSdcardData = await virtualSdcardResponse.json();
+                const virtualSdcard = virtualSdcardData.result?.status?.virtual_sdcard || {};
+                
+                if (virtualSdcard.is_active && virtualSdcard.progress !== undefined) {
+                    // Convert progress from decimal (0-1) to percentage (0-100)
+                    printProgress = Math.round(virtualSdcard.progress * 100);
+                    isPrintingActive = virtualSdcard.is_active;
+                    currentFileName = virtualSdcard.file_path || null;
+                }
+            }
+            
             // Get temperature info
             const tempResponse = await fetch(`${apiUrl}/printer/objects/query?heater_bed&extruder`, {
                 method: 'GET',
@@ -416,18 +489,25 @@ class PrintersManager {
             // Determine printer state
             let state = printStats.state || 'unknown';
             
+            // If virtual_sdcard shows active printing but state is not printing, update state
+            if (isPrintingActive && state !== 'printing') {
+                state = 'printing';
+            }
+            
             // Map "complete" state to "done" for better UX
             if (state === 'complete') {
                 state = 'done';
             }
             
-            // Calculate progress if printing
-            let progress = null;
-            if (state === 'printing' && printStats.print_duration && printStats.total_duration) {
-                progress = Math.round((printStats.print_duration / printStats.total_duration) * 100);
-            } else if (state === 'printing' && printStats.print_duration) {
-                // Estimate progress if total_duration not available
-                progress = 0; // Will be updated as print progresses
+            // Use progress from virtual_sdcard if available, otherwise fallback to old calculation
+            let progress = printProgress;
+            if (progress === null && state === 'printing') {
+                // Fallback: calculate progress from print_duration if virtual_sdcard not available
+                if (printStats.print_duration && printStats.total_duration) {
+                    progress = Math.round((printStats.print_duration / printStats.total_duration) * 100);
+                } else if (printStats.print_duration) {
+                    progress = 0; // Will be updated as print progresses
+                }
             }
 
             return {
@@ -437,7 +517,7 @@ class PrintersManager {
                 printProgress: progress,
                 temperature: temperature,
                 printStats: {
-                    filename: printStats.filename || null,
+                    filename: currentFileName || printStats.filename || null,
                     printDuration: printStats.print_duration || 0
                 }
             };
@@ -535,7 +615,67 @@ class PrintersManager {
         }
     }
 
+    async editPrinterName(printerId) {
+        // Close menu
+        const menu = document.getElementById(`menu-${printerId}`);
+        if (menu) menu.style.display = 'none';
+
+        const printer = this.printers.find(p => p.id === printerId);
+        if (!printer) {
+            alert('Printer not found');
+            return;
+        }
+
+        const newName = prompt('Enter new printer name:', printer.name);
+        if (newName === null) {
+            // User cancelled
+            return;
+        }
+
+        const trimmedName = newName.trim();
+        if (!trimmedName) {
+            alert('Printer name cannot be empty');
+            return;
+        }
+
+        if (trimmedName === printer.name) {
+            // No change
+            return;
+        }
+
+        try {
+            const currentHost = window.location.hostname;
+            const response = await fetch(`http://${currentHost}:3000/api/printers/${printerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: trimmedName })
+            });
+
+            if (response.ok) {
+                // Reload printers from server
+                this.printers = await this.loadPrinters();
+                this.renderPrinters();
+            } else {
+                const data = await response.json();
+                alert(`Failed to update printer name: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error updating printer name:', error);
+            alert('Failed to update printer name. Please try again.');
+        }
+    }
+
     async removePrinter(printerId) {
+        // Close menu
+        const menu = document.getElementById(`menu-${printerId}`);
+        if (menu) menu.style.display = 'none';
+
+        if (!confirm('Are you sure you want to remove this printer?')) {
+            return;
+        }
+
         try {
             const currentHost = window.location.hostname;
             const response = await fetch(`http://${currentHost}:3000/api/printers/${printerId}`, {
@@ -547,11 +687,12 @@ class PrintersManager {
                 this.printers = await this.loadPrinters();
                 this.renderPrinters();
             } else {
-                alert('Failed to delete printer from server');
+                const data = await response.json();
+                alert(`Failed to remove printer: ${data.error || 'Unknown error'}`);
             }
         } catch (error) {
-            console.error('Error deleting printer:', error);
-            alert('Error deleting printer: ' + error.message);
+            console.error('Error removing printer:', error);
+            alert('Failed to remove printer. Please try again.');
         }
     }
 

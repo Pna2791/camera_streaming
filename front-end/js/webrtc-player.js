@@ -13,9 +13,6 @@ class WebRTCPlayer {
         this.connectBtn.addEventListener('click', () => this.connect());
         this.disconnectBtn.addEventListener('click', () => this.disconnect());
         
-        // Update status info
-        this.updateInfo('status', 'Disconnected');
-        
         // Auto-connect when page loads
         this.autoConnect();
     }
@@ -95,17 +92,10 @@ class WebRTCPlayer {
                 this.video.srcObject = event.streams[0];
                 this.videoOverlay.classList.add('hidden');
                 this.updateStatus('connected', 'Streaming');
-                this.updateInfo('status', 'Connected');
                 
                 // Optimize video playback for smooth streaming
                 this.video.playsInline = true;
                 this.video.muted = true;  // Muted for autoplay
-                
-                // Get video dimensions
-                this.video.onloadedmetadata = () => {
-                    this.updateInfo('resolution', 
-                        `${this.video.videoWidth}x${this.video.videoHeight}`);
-                };
                 
                 // Monitor video playback for issues
                 this.video.onstalled = () => {
@@ -192,9 +182,6 @@ class WebRTCPlayer {
     disconnect() {
         this.cleanup();
         this.updateStatus('', 'Ready to connect');
-        this.updateInfo('status', 'Disconnected');
-        this.updateInfo('resolution', '-');
-        this.updateInfo('fps', '-');
     }
 
     cleanup() {

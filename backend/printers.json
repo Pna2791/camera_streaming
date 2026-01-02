@@ -1,2 +1,29 @@
-[]
-
+[
+  {
+    "id": "1767351141203u2707abbr",
+    "name": "Nep4pro",
+    "ip": "192.168.1.17",
+    "status": "unknown",
+    "printerState": null,
+    "createdAt": "2026-01-02T10:52:21.204Z",
+    "updatedAt": "2026-01-02T11:03:35.142Z"
+  },
+  {
+    "id": "176735114121769pld0e23",
+    "name": "Nep3plus_mod",
+    "ip": "192.168.1.26",
+    "status": "unknown",
+    "printerState": null,
+    "createdAt": "2026-01-02T10:52:21.218Z",
+    "updatedAt": "2026-01-02T12:21:39.063Z"
+  },
+  {
+    "id": "1767365512643ndkciqy3o",
+    "name": "Biqu",
+    "ip": "192.168.1.25",
+    "status": "unknown",
+    "printerState": null,
+    "createdAt": "2026-01-02T14:51:52.643Z",
+    "updatedAt": "2026-01-02T16:21:13.293Z"
+  }
+]

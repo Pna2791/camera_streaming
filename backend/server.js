@@ -271,37 +271,55 @@ app.post('/api/printers', async (req, res) => {
     }
 });
 
-// PUT /api/printers - Update entire printers list
-app.put('/api/printers', async (req, res) => {
+// PUT /api/printers/:id - Update a printer's name (must be before /api/printers)
+app.put('/api/printers/:id', async (req, res) => {
     try {
-        const { printers } = req.body;
+        const { id } = req.params;
+        const { name } = req.body;
         
-        if (!Array.isArray(printers)) {
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Printers must be an array'
+                error: 'Name is required and must be a non-empty string'
             });
         }
+
+        const printers = await readPrinters();
+        const printerIndex = printers.findIndex(p => p.id === id);
+        
+        if (printerIndex < 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Printer not found'
+            });
+        }
+
+        // Update printer name
+        printers[printerIndex] = {
+            ...printers[printerIndex],
+            name: name.trim(),
+            updatedAt: new Date().toISOString()
+        };
 
         const success = await writePrinters(printers);
         
         if (success) {
             res.json({
                 success: true,
-                message: 'Printers list updated',
-                count: printers.length
+                message: 'Printer name updated',
+                printer: printers[printerIndex]
             });
         } else {
             res.status(500).json({
                 success: false,
-                error: 'Failed to update printers list'
+                error: 'Failed to update printer name'
             });
         }
     } catch (error) {
-        console.error('Error updating printers list:', error);
+        console.error('Error updating printer name:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to update printers list',
+            error: 'Failed to update printer name',
             details: error.message
         });
     }

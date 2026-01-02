@@ -43,6 +43,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend/printers.json:/app/printers.json
     network_mode: host  # Use host network for better camera access
     environment:
       - NODE_ENV=production
