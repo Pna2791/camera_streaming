@@ -5,6 +5,9 @@ const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
+const FormData = require('form-data');
+const http = require('http');
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +15,9 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Configure multer for file uploads (memory storage)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Test RTSP connection endpoint
 app.post('/api/test-rtsp', async (req, res) => {
@@ -382,7 +388,179 @@ app.get('/api/check-ffprobe', async (req, res) => {
     }
 });
 
-// Moonraker API proxy endpoints (using port 80)
+// POST endpoints must be defined before GET wildcard routes to ensure proper matching
+// POST /api/moonraker/:ip/server/files/upload - Upload file to printer
+app.post('/api/moonraker/:ip/server/files/upload', upload.single('file'), async (req, res) => {
+    console.log('File upload endpoint hit:', req.params.ip);
+    const printerIp = req.params.ip;
+    const moonrakerUrl = `http://${printerIp}:80/server/files/upload`;
+
+    if (!req.file) {
+        console.log('No file in request');
+        return res.status(400).json({
+            success: false,
+            error: 'No file provided'
+        });
+    }
+    
+    console.log('File received:', req.file.originalname, 'Size:', req.file.size);
+    
+    // Ensure response is sent even if there's an error
+    let responseSent = false;
+    const sendResponse = (status, data) => {
+        if (!responseSent) {
+            responseSent = true;
+            res.status(status).json(data);
+        }
+    };
+
+    try {
+        // Create FormData to forward the file
+        // Moonraker expects the file as multipart/form-data with field name 'file'
+        console.log('Creating FormData...');
+        const formData = new FormData();
+        
+        // Use buffer directly - this matches how curl sends files
+        formData.append('file', req.file.buffer, {
+            filename: req.file.originalname || 'upload.gcode',
+            contentType: req.file.mimetype || 'application/octet-stream',
+            knownLength: req.file.size
+        });
+        
+        const headers = formData.getHeaders();
+        console.log('FormData created, headers:', headers);
+        console.log('File info - name:', req.file.originalname, 'size:', req.file.size, 'mimetype:', req.file.mimetype);
+
+        console.log('Uploading to Moonraker:', moonrakerUrl);
+        
+        // Parse URL
+        const url = new URL(moonrakerUrl);
+        const formHeaders = formData.getHeaders();
+        console.log('Request headers:', formHeaders);
+        
+        // Use native http module which handles form-data streams better
+        const response = await new Promise((resolve, reject) => {
+            const req = http.request({
+                hostname: url.hostname,
+                port: url.port || 80,
+                path: url.pathname,
+                method: 'POST',
+                headers: formHeaders,
+                timeout: 30000
+            }, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                    resolve({
+                        status: res.statusCode,
+                        statusText: res.statusMessage,
+                        ok: res.statusCode >= 200 && res.statusCode < 300,
+                        json: async () => JSON.parse(data),
+                        text: async () => data,
+                        headers: {
+                            get: (name) => res.headers[name.toLowerCase()]
+                        }
+                    });
+                });
+            });
+            
+            req.on('error', reject);
+            req.on('timeout', () => {
+                req.destroy();
+                reject(new Error('Request timeout'));
+            });
+            
+            // Pipe form-data to request
+            formData.pipe(req);
+        });
+
+        console.log('Moonraker response status:', response.status, response.statusText);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Moonraker upload failed:', response.status, errorText.substring(0, 200));
+            return sendResponse(response.status, {
+                success: false,
+                error: 'Failed to upload file to printer',
+                details: errorText || response.statusText
+            });
+        }
+
+        const data = await response.json();
+        console.log('Upload successful');
+        return sendResponse(200, {
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        console.error('File upload error:', error);
+        console.error('Error stack:', error.stack);
+        // Don't return 404, return 500 for server errors
+        return sendResponse(500, {
+            success: false,
+            error: 'Failed to upload file',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/moonraker/:ip/printer/print/start - Start print on printer
+app.post('/api/moonraker/:ip/printer/print/start', async (req, res) => {
+    console.log('Start print endpoint hit:', req.params.ip);
+    const printerIp = req.params.ip;
+    const moonrakerUrl = `http://${printerIp}:80/printer/print/start`;
+    const { filename } = req.body;
+
+    if (!filename) {
+        return res.status(400).json({
+            success: false,
+            error: 'Filename is required'
+        });
+    }
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        console.log('Starting print on Moonraker:', moonrakerUrl, 'File:', filename);
+        const response = await fetch(moonrakerUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ filename }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Moonraker start print failed:', response.status, errorText);
+            return res.status(response.status).json({
+                success: false,
+                error: 'Failed to start print',
+                details: errorText || response.statusText
+            });
+        }
+
+        const data = await response.json();
+        console.log('Start print successful');
+        res.json({
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        console.error('Start print error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to start print',
+            details: error.message
+        });
+    }
+});
+
+// Moonraker API proxy endpoints (using port 80) - GET requests (wildcard route must be last)
 app.get('/api/moonraker/:ip/*', async (req, res) => {
     const printerIp = req.params.ip;
     const moonrakerPath = req.params[0] || 'server/info';
