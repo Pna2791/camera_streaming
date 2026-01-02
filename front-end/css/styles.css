@@ -13,12 +13,33 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     background: white;
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+}
+
+.main-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+}
+
+.left-column {
+    background: #f8f9fa;
+    border-right: 1px solid #e9ecef;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.right-column {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 header {
@@ -112,12 +133,13 @@ header h1 {
 }
 
 .status {
-    padding: 20px 30px;
+    padding: 15px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: white;
-    border-bottom: 1px solid #e9ecef;
+    /* background: white; */
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
 }
 
 .status-indicator {
@@ -184,8 +206,10 @@ header h1 {
 }
 
 .info-panel {
-    padding: 30px;
+    padding: 20px;
     background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
 }
 
 .info-panel h3 {
@@ -220,6 +244,267 @@ header h1 {
     color: #495057;
 }
 
+/* Printers Panel Styles */
+.printers-panel {
+    width: 100%;
+}
+
+.printers-panel h2 {
+    margin: 0 0 20px 0;
+    color: #495057;
+    font-size: 1.3em;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.printers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.printer-item {
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.printer-item:hover {
+    border-color: #667eea;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.printer-item.active {
+    border-color: #667eea;
+    background: #f0f4ff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.printer-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.printer-menu-container {
+    position: relative;
+}
+
+.printer-menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2em;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.printer-menu-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.printer-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 150px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.printer-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: #495057;
+    transition: background 0.2s;
+}
+
+.printer-menu-item:hover {
+    background: #f8f9fa;
+}
+
+.printer-menu-item-danger {
+    color: #dc3545;
+}
+
+.printer-menu-item-danger:hover {
+    background: #fff5f5;
+    color: #c82333;
+}
+
+.printer-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.printer-name {
+    font-weight: 600;
+    color: #495057;
+    flex: 1;
+}
+
+.printer-ip {
+    color: #6c757d;
+    font-size: 0.9em;
+    font-family: 'Courier New', monospace;
+}
+
+.printer-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6c757d;
+    margin-left: auto;
+}
+
+.printer-status.online {
+    background: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+}
+
+.printer-status.offline {
+    background: #dc3545;
+}
+
+.no-printers {
+    text-align: center;
+    color: #6c757d;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
+.printer-state {
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.printer-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e9ecef;
+}
+
+.printer-temp {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.printer-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s;
+}
+
+.progress-text {
+    font-size: 0.85em;
+    color: #495057;
+    font-weight: 600;
+    min-width: 40px;
+}
+
+.add-printer-form {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-remove {
+    transition: all 0.2s;
+}
+
+.btn-remove:hover {
+    background: #c82333 !important;
+    transform: scale(1.05);
+}
+
+.btn-open {
+    transition: all 0.2s;
+}
+
+.btn-open:hover {
+    background: #5568d3 !important;
+    transform: scale(1.05);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.scan-results {
+    animation: slideDown 0.3s ease-out;
+}
+
+.btn-add-discovered:hover {
+    background: #218838 !important;
+    transform: scale(1.05);
+    transition: all 0.2s;
+}
+
+.btn-add-all {
+    transition: all 0.2s;
+}
+
+.btn-add-all:hover {
+    background: #5568d3 !important;
+    transform: scale(1.02);
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 2em;
@@ -231,6 +516,15 @@ header h1 {
     
     .info-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .left-column {
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
     }
 }
 

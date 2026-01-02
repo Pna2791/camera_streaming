@@ -16,4 +16,4 @@ Thumbs.db
 recordings/
 *.mp4
 *.mkv
-
+*.pyc
