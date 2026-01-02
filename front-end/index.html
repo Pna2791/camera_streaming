@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IP Camera Stream - WebRTC</title>
+    <title>Creator Phan's Klipper Controller</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/common.css">
 </head>
@@ -183,6 +183,17 @@
     <script src="js/navigation.js"></script>
     <script src="js/stream-integration.js"></script>
     <script src="js/upload-print.js"></script>
+
+    <!-- Thumbnail Preview Modal -->
+    <div id="thumbnailModal" class="thumbnail-modal" style="display: none;">
+        <div class="thumbnail-modal-content">
+            <span class="thumbnail-modal-close">&times;</span>
+            <div class="thumbnail-modal-info">
+                <div id="thumbnailModalFileName" class="thumbnail-modal-filename"></div>
+                <img id="thumbnailModalImage" src="" alt="Print Preview" class="thumbnail-modal-img">
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

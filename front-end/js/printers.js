@@ -273,6 +273,28 @@ class PrintersManager {
         }
     }
 
+    getThumbnailUrl(printer) {
+        if (!printer.printStats || !printer.printStats.filename) {
+            console.log('No filename in printStats for printer:', printer.name, printer.printStats);
+            return null;
+        }
+        
+        // Extract filename from path (e.g., "/opt/printer_data/gcodes/file.gcode" -> "file.gcode")
+        let filename = printer.printStats.filename;
+        if (filename.includes('/')) {
+            filename = filename.split('/').pop();
+        }
+        
+        // Remove .gcode extension and add thumbnail suffix
+        const baseName = filename.replace(/\.gcode$/i, '');
+        // Add timestamp to prevent caching issues
+        const timestamp = Date.now() / 1000;
+        const thumbnailUrl = `http://${printer.ip}/server/files/gcodes/.thumbs/${baseName}-300x300.png?date=${timestamp}`;
+        
+        console.log('Thumbnail URL for', printer.name, ':', thumbnailUrl);
+        return thumbnailUrl;
+    }
+
     renderPrinters() {
         const container = document.getElementById('printersList');
         
@@ -285,11 +307,31 @@ class PrintersManager {
             const state = printer.printerState || 'unknown';
             const stateLabel = this.getStateLabel(state);
             const stateColor = this.getStateColor(state);
+            const showPreview = (state === 'printing' || state === 'done') && printer.status === 'online';
+            const thumbnailUrl = showPreview ? this.getThumbnailUrl(printer) : null;
+            
+            // Get filename for modal display
+            let filename = null;
+            if (printer.printStats && printer.printStats.filename) {
+                let fullPath = printer.printStats.filename;
+                if (fullPath.includes('/')) {
+                    filename = fullPath.split('/').pop();
+                } else {
+                    filename = fullPath;
+                }
+            }
+            
+            console.log('Printer:', printer.name, 'State:', state, 'ShowPreview:', showPreview, 'ThumbnailURL:', thumbnailUrl);
             
             return `
             <div class="printer-item" data-printer-id="${printer.id}">
-                <div class="printer-item-header">
-                    <img src="imgs/3d_printer.png" alt="Printer" class="printer-icon">
+                <div class="printer-item-header" style="display: flex; align-items: flex-start; gap: 12px;">
+                    ${thumbnailUrl ? `
+                        <img src="${thumbnailUrl}" alt="Print Preview" class="printer-preview" style="cursor: pointer;" onclick="window.printerManager.openThumbnailModal('${thumbnailUrl}', ${filename ? `'${filename.replace(/'/g, "\\'")}'` : 'null'})" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <img src="imgs/3d_printer.png" alt="Printer" class="printer-icon" style="display: none;">
+                    ` : `
+                        <img src="imgs/3d_printer.png" alt="Printer" class="printer-icon">
+                    `}
                     <div style="flex: 1;">
                         <div class="printer-name">${printer.name}</div>
                         <div class="printer-ip">${printer.ip}:80</div>
@@ -420,6 +462,10 @@ class PrintersManager {
                 printer.printerState = updatedPrinter.printerState;
                 printer.temperature = updatedPrinter.temperature;
                 printer.printProgress = updatedPrinter.printProgress;
+                // Preserve printStats (including filename) if it exists
+                if (updatedPrinter.printStats) {
+                    printer.printStats = updatedPrinter.printStats;
+                }
             }
         });
 
@@ -520,6 +566,10 @@ class PrintersManager {
                 }
             }
 
+            // Get filename from printStats if not available from virtual_sdcard
+            // Preserve existing filename if we have one, otherwise use new one
+            const filename = currentFileName || printStats.filename || printer.printStats?.filename || null;
+            
             return {
                 ...printer,
                 status: 'online',
@@ -527,7 +577,7 @@ class PrintersManager {
                 printProgress: progress,
                 temperature: temperature,
                 printStats: {
-                    filename: currentFileName || printStats.filename || null,
+                    filename: filename,
                     printDuration: printStats.print_duration || 0
                 }
             };
@@ -823,12 +873,64 @@ class PrintersManager {
         };
         return stateColors[state] || '#6c757d';
     }
+
+    openThumbnailModal(thumbnailUrl, filename = null) {
+        const modal = document.getElementById('thumbnailModal');
+        const modalImg = document.getElementById('thumbnailModalImage');
+        const modalFileName = document.getElementById('thumbnailModalFileName');
+        const closeBtn = document.querySelector('.thumbnail-modal-close');
+        
+        if (!modal || !modalImg) {
+            console.error('Thumbnail modal elements not found');
+            return;
+        }
+        
+        // Set the image source
+        modalImg.src = thumbnailUrl;
+        
+        // Set the filename if provided
+        if (modalFileName) {
+            if (filename) {
+                modalFileName.textContent = filename;
+                modalFileName.style.display = 'block';
+            } else {
+                modalFileName.style.display = 'none';
+            }
+        }
+        
+        // Show the modal
+        modal.style.display = 'flex';
+        
+        // Close modal when clicking the X button
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+        
+        // Close modal when clicking outside the image
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function escapeHandler(e) {
+            if (e.key === 'Escape') {
+                modal.style.display = 'none';
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        });
+    }
 }
 
 // Initialize printers manager when page loads
 let printersManager;
+window.printerManager = null; // Make it globally accessible
 document.addEventListener('DOMContentLoaded', async () => {
     printersManager = new PrintersManager();
+    window.printerManager = printersManager; // Make it globally accessible for onclick handlers
     await printersManager.init();
     
     // Refresh printer statuses every 10 seconds
