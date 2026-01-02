@@ -11,8 +11,9 @@ COPY package.json ./
 # Install dependencies
 RUN npm install
 
-# Copy server file
+# Copy server file and printers.json
 COPY server.js ./
+COPY printers.json ./
 
 EXPOSE 3000
 

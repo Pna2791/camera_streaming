@@ -14,61 +14,116 @@
                 <a href="index.html" class="nav-link active">📹 Stream</a>
                 <a href="pages/setup.html" class="nav-link">⚙️ Setup</a>
             </nav>
-            <h1>📹 IP Camera Live Stream</h1>
-            <p class="subtitle">Real-time video streaming via WebRTC</p>
+            <!-- <h1>📹 IP Camera Live Stream</h1>
+            <p class="subtitle">Real-time video streaming via WebRTC</p> -->
         </header>
 
-        <div class="controls">
-            <div class="input-group" style="display: none;">
-                <label for="streamUrl">Stream URL:</label>
-                <input 
-                    type="text" 
-                    id="streamUrl" 
-                    placeholder="http://localhost:8555/camera"
-                >
-            </div>
-            <div class="button-group">
-                <button id="connectBtn" class="btn btn-primary" style="display: none;">Connect</button>
-                <button id="disconnectBtn" class="btn btn-secondary" disabled>Disconnect</button>
-            </div>
-        </div>
-
-        <div class="status" id="status">
-            <span class="status-indicator" id="statusIndicator"></span>
-            <span id="statusText">Ready to connect</span>
-        </div>
-
-        <div class="video-container">
-            <video 
-                id="videoPlayer" 
-                autoplay 
-                playsinline
-                muted
-            ></video>
-            <div class="video-overlay" id="videoOverlay">
-                <p>No stream connected</p>
-            </div>
-        </div>
-
-        <div class="info-panel">
-            <h3>Stream Information</h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Status:</span>
-                    <span class="info-value" id="infoStatus">-</span>
+        <div class="main-layout">
+            <!-- Left Column: Klipper Printers List -->
+            <div class="left-column">
+                <div class="printers-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;">🖨️ Klipper Printers</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="scanNetworkBtn" class="btn btn-secondary btn-small" style="padding: 8px 12px; font-size: 0.9em;">
+                                🔍 Scan
+                            </button>
+                            <button id="addPrinterBtn" class="btn btn-primary btn-small" style="padding: 8px 12px; font-size: 0.9em;">
+                                + Add
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Scan Results (hidden by default) -->
+                    <div id="scanResults" class="scan-results" style="display: none; margin-bottom: 15px; padding: 15px; background: #e7f3ff; border-radius: 8px; border: 1px solid #b3d9ff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 style="margin: 0; font-size: 1em; color: #495057;">🔍 Scan Results</h3>
+                            <button id="closeScanResults" style="background: none; border: none; font-size: 1.2em; cursor: pointer; color: #6c757d;">×</button>
+                        </div>
+                        <div id="scanResultsContent"></div>
+                    </div>
+                    <!-- Scan Progress (hidden by default) -->
+                    <div id="scanProgress" class="scan-progress" style="display: none; margin-bottom: 15px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="spinner" style="border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite;"></div>
+                            <span id="scanProgressText" style="color: #856404;">Scanning network...</span>
+                        </div>
+                    </div>
+                    <div id="printersList" class="printers-list">
+                        <!-- Printers will be loaded here -->
+                    </div>
+                    <!-- Add Printer Form (hidden by default) -->
+                    <div id="addPrinterForm" class="add-printer-form" style="display: none; margin-top: 15px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 1.1em; color: #495057;">Add Printer</h3>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <input type="text" id="newPrinterName" placeholder="Printer Name" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <input type="text" id="newPrinterIp" placeholder="IP Address (e.g., 192.168.1.17)" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="savePrinterBtn" class="btn btn-primary btn-small" style="flex: 1; padding: 8px;">Save</button>
+                            <button id="cancelPrinterBtn" class="btn btn-secondary btn-small" style="flex: 1; padding: 8px;">Cancel</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">Resolution:</span>
-                    <span class="info-value" id="infoResolution">-</span>
+            </div>
+
+            <!-- Right Column: Camera Stream -->
+            <div class="right-column">
+                <div class="controls" style="display: none;">
+                    <div class="input-group" style="display: none;">
+                        <label for="streamUrl">Stream URL:</label>
+                        <input 
+                            type="text" 
+                            id="streamUrl" 
+                            placeholder="http://localhost:8555/camera"
+                        >
+                    </div>
+                    <div class="button-group">
+                        <button id="connectBtn" class="btn btn-primary" style="display: none;">Connect</button>
+                        <button id="disconnectBtn" class="btn btn-secondary" disabled>Disconnect</button>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <span class="info-label">FPS:</span>
-                    <span class="info-value" id="infoFPS">-</span>
+
+                <div class="status" id="status">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Ready to connect</span>
+                </div>
+
+                <div class="video-container">
+                    <video 
+                        id="videoPlayer" 
+                        autoplay 
+                        playsinline
+                        muted
+                    ></video>
+                    <div class="video-overlay" id="videoOverlay">
+                        <p>No stream connected</p>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <h3>Stream Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value" id="infoStatus">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Resolution:</span>
+                            <span class="info-value" id="infoResolution">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">FPS:</span>
+                            <span class="info-value" id="infoFPS">-</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="js/printers.js"></script>
     <script src="js/webrtc-player.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/stream-integration.js"></script>
