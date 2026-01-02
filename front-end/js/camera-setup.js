@@ -180,16 +180,17 @@ class CameraSetup {
     async detectCamera(ip, port) {
         // Try common RTSP paths to detect camera type
         const commonPaths = [
+            { path: '/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif', type: 'IMOU' },
             { path: '/cam/realmonitor?channel=1&subtype=0', type: 'Dahua' },
-            { path: '/stream1', type: 'IMOU' },
             { path: '/Streaming/Channels/101', type: 'Hikvision' },
+            { path: '/stream1', type: 'Generic Stream 1' },
             { path: '/live', type: 'Generic' }
         ];
 
-        // For now, return a generic camera info
+        // For now, return IMOU camera info (most common)
         // Full detection would require RTSP connection testing
         return {
-            type: 'Unknown',
+            type: 'IMOU',
             path: '/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif',
             suggestedPath: commonPaths[0].path
         };
@@ -236,10 +237,69 @@ class CameraSetup {
         testBtn.textContent = 'Testing...';
 
         try {
-            // Test RTSP connection (simplified - would need backend for real test)
-            alert(`Testing connection to:\n${rtspUrl}\n\nNote: Full RTSP testing requires backend support. Please verify the URL is correct.`);
+            // Get API URL (try to detect from current host)
+            const currentHost = window.location.hostname;
+            const apiUrl = `http://${currentHost}:3000/api/test-rtsp`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rtspUrl: rtspUrl })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Show success message with stream info
+                let message = `✅ Connection Successful!\n\n`;
+                message += `RTSP URL: ${rtspUrl}\n\n`;
+                
+                if (result.streams.video) {
+                    message += `Video:\n`;
+                    message += `  Codec: ${result.streams.video.codec}\n`;
+                    message += `  Resolution: ${result.streams.video.resolution}\n`;
+                    message += `  FPS: ${result.streams.video.fps}\n`;
+                }
+                
+                if (result.streams.audio) {
+                    message += `\nAudio:\n`;
+                    message += `  Codec: ${result.streams.audio.codec}\n`;
+                }
+                
+                message += `\nConnection time: ${result.connectionTime}ms`;
+                
+                alert(message);
+            } else {
+                // Show error message
+                let message = `❌ Connection Failed\n\n`;
+                message += `RTSP URL: ${rtspUrl}\n\n`;
+                message += `Error: ${result.error}\n`;
+                
+                if (result.details) {
+                    message += `\nDetails: ${result.details}`;
+                }
+                
+                if (result.suggestion) {
+                    message += `\n\nSuggestion: ${result.suggestion}`;
+                }
+                
+                alert(message);
+            }
         } catch (error) {
-            alert('Connection test failed: ' + error.message);
+            console.error('Test connection error:', error);
+            
+            // Check if API is available
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                alert(`❌ Cannot reach API server\n\n` +
+                      `Make sure the backend API is running on port 3000.\n\n` +
+                      `Error: ${error.message}\n\n` +
+                      `RTSP URL: ${rtspUrl}\n\n` +
+                      `You can still save the camera configuration, but connection testing requires the API.`);
+            } else {
+                alert(`Connection test failed: ${error.message}`);
+            }
         } finally {
             testBtn.disabled = false;
             testBtn.textContent = originalText;

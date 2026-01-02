@@ -1,0 +1,15 @@
+{
+  "name": "camera-streaming-api",
+  "version": "1.0.0",
+  "description": "Backend API for camera streaming setup",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-rtsp-stream": "^0.0.9"
+  }
+}
+

@@ -41,7 +41,7 @@ paths:
 ```
 
 **Common RTSP URL formats:**
-- IMOU: `rtsp://admin:password@192.168.1.100:554/stream1`
+- IMOU: `rtsp://admin:password@192.168.1.100:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif`
 - Hikvision: `rtsp://admin:password@192.168.1.100:554/Streaming/Channels/101`
 - Dahua: `rtsp://admin:password@192.168.1.100:554/cam/realmonitor?channel=1&subtype=0`
 

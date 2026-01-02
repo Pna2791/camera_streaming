@@ -4,8 +4,6 @@ class WebRTCPlayer {
         this.controller = null;
         this.video = document.getElementById('videoPlayer');
         this.streamUrl = document.getElementById('streamUrl');
-        this.authUsername = document.getElementById('authUsername');
-        this.authPassword = document.getElementById('authPassword');
         this.connectBtn = document.getElementById('connectBtn');
         this.disconnectBtn = document.getElementById('disconnectBtn');
         this.statusIndicator = document.getElementById('statusIndicator');
@@ -17,6 +15,19 @@ class WebRTCPlayer {
         
         // Update status info
         this.updateInfo('status', 'Disconnected');
+        
+        // Auto-connect when page loads
+        this.autoConnect();
+    }
+    
+    autoConnect() {
+        // Wait a bit for the page to fully load, then auto-connect
+        setTimeout(() => {
+            if (this.streamUrl && this.streamUrl.value) {
+                console.log('Auto-connecting to stream...');
+                this.connect();
+            }
+        }, 500);
     }
 
     updateStatus(status, text) {
@@ -65,19 +76,11 @@ class WebRTCPlayer {
             this.pc.onicecandidate = async (event) => {
                 if (event.candidate && this.controller) {
                     try {
-                        const headers = {
-                            'Content-Type': 'application/trickle-ice-sdpfrag'
-                        };
-                        const username = this.authUsername ? this.authUsername.value.trim() : '';
-                        const password = this.authPassword ? this.authPassword.value.trim() : '';
-                        if (username && password) {
-                            const credentials = btoa(`${username}:${password}`);
-                            headers['Authorization'] = `Basic ${credentials}`;
-                        }
-                        
                         await fetch(`${serverUrl}${path}/whep`, {
                             method: 'PATCH',
-                            headers: headers,
+                            headers: {
+                                'Content-Type': 'application/trickle-ice-sdpfrag'
+                            },
                             body: event.candidate.candidate
                         });
                     } catch (err) {
@@ -131,26 +134,15 @@ class WebRTCPlayer {
             });
             await this.pc.setLocalDescription(offer);
 
-            // Prepare headers with optional authentication
-            const headers = {
-                'Content-Type': 'application/sdp'
-            };
-            
-            // Add Basic Auth if username/password provided
-            const username = this.authUsername ? this.authUsername.value.trim() : '';
-            const password = this.authPassword ? this.authPassword.value.trim() : '';
-            if (username && password) {
-                const credentials = btoa(`${username}:${password}`);
-                headers['Authorization'] = `Basic ${credentials}`;
-            }
-
             // Send offer to MediaMTX using WHEP protocol
             console.log('Connecting to:', `${serverUrl}${path}/whep`);
             console.log('SDP Offer length:', offer.sdp.length);
             
             const response = await fetch(`${serverUrl}${path}/whep`, {
                 method: 'POST',
-                headers: headers,
+                headers: {
+                    'Content-Type': 'application/sdp'
+                },
                 body: offer.sdp
             });
 
