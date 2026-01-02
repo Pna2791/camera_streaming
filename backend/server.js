@@ -560,6 +560,94 @@ app.post('/api/moonraker/:ip/printer/print/start', async (req, res) => {
     }
 });
 
+// POST /api/moonraker/:ip/printer/print/pause - Pause print on printer
+app.post('/api/moonraker/:ip/printer/print/pause', async (req, res) => {
+    console.log('Pause print endpoint hit:', req.params.ip);
+    const printerIp = req.params.ip;
+    const moonrakerUrl = `http://${printerIp}:80/printer/print/pause`;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        console.log('Pausing print on Moonraker:', moonrakerUrl);
+        const response = await fetch(moonrakerUrl, {
+            method: 'POST',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Moonraker pause print failed:', response.status, errorText);
+            return res.status(response.status).json({
+                success: false,
+                error: 'Failed to pause print',
+                details: errorText || response.statusText
+            });
+        }
+
+        const data = await response.json();
+        console.log('Pause print successful');
+        res.json({
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        console.error('Pause print error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to pause print',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/moonraker/:ip/printer/print/cancel - Cancel print on printer
+app.post('/api/moonraker/:ip/printer/print/cancel', async (req, res) => {
+    console.log('Cancel print endpoint hit:', req.params.ip);
+    const printerIp = req.params.ip;
+    const moonrakerUrl = `http://${printerIp}:80/printer/print/cancel`;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        console.log('Canceling print on Moonraker:', moonrakerUrl);
+        const response = await fetch(moonrakerUrl, {
+            method: 'POST',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => '');
+            console.error('Moonraker cancel print failed:', response.status, errorText);
+            return res.status(response.status).json({
+                success: false,
+                error: 'Failed to cancel print',
+                details: errorText || response.statusText
+            });
+        }
+
+        const data = await response.json();
+        console.log('Cancel print successful');
+        res.json({
+            success: true,
+            ...data
+        });
+    } catch (error) {
+        console.error('Cancel print error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to cancel print',
+            details: error.message
+        });
+    }
+});
+
 // Moonraker API proxy endpoints (using port 80) - GET requests (wildcard route must be last)
 app.get('/api/moonraker/:ip/*', async (req, res) => {
     const printerIp = req.params.ip;

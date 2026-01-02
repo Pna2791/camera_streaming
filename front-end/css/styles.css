@@ -45,8 +45,17 @@ body {
 header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 30px;
-    text-align: center;
+    padding: 20px 30px;
+    text-align: left;
+}
+
+.header-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 header h1 {
@@ -484,6 +493,75 @@ header h1 {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Contact Information Styles */
+.contact-info {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-top: 20px;
+}
+
+.contact-info h3 {
+    margin: 0 0 12px 0;
+    font-size: 1em;
+    font-weight: 600;
+    color: #495057;
+}
+
+.contact-items {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.contact-icon {
+    font-size: 1em;
+}
+
+.contact-label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 2px;
+}
+
+.contact-link {
+    color: #667eea;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.contact-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.contact-value {
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    .contact-items {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .contact-item {
+        white-space: normal;
+    }
 }
 
 /* Modal Styles */

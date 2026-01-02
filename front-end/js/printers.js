@@ -308,6 +308,11 @@ class PrintersManager {
                             <button class="printer-menu-item" onclick="event.stopPropagation(); printersManager.editPrinterName('${printer.id}')">
                                 ✏️ Edit Name
                             </button>
+                            ${printer.status === 'online' && (printer.printerState === 'printing' || printer.printerState === 'paused') ? `
+                            <button class="printer-menu-item printer-menu-item-danger" onclick="event.stopPropagation(); printersManager.cancelPrint('${printer.id}', '${printer.ip}')">
+                                ⛔ Cancel Print
+                            </button>
+                            ` : ''}
                             <button class="printer-menu-item printer-menu-item-danger" onclick="event.stopPropagation(); printersManager.removePrinter('${printer.id}')">
                                 🗑️ Remove
                             </button>
@@ -330,8 +335,13 @@ class PrintersManager {
                         ` : ''}
                     </div>
                 ` : ''}
-                <div style="margin-top: 8px;">
-                    <button class="btn-open" onclick="event.stopPropagation(); printersManager.openPrinterDashboard('${printer.ip}')" style="width: 100%; padding: 8px 12px; font-size: 0.85em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    ${printer.status === 'online' && (printer.printerState === 'printing' || printer.printerState === 'paused') ? `
+                        <button class="btn-pause" onclick="event.stopPropagation(); printersManager.pausePrint('${printer.id}', '${printer.ip}')" style="flex: 1; padding: 8px 12px; font-size: 0.85em; background: #ffc107; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            ${printer.printerState === 'paused' ? '▶️ Resume' : '⏸️ Pause'}
+                        </button>
+                    ` : ''}
+                    <button class="btn-open" onclick="event.stopPropagation(); printersManager.openPrinterDashboard('${printer.ip}')" style="${printer.status === 'online' && (printer.printerState === 'printing' || printer.printerState === 'paused') ? 'flex: 1;' : 'width: 100%;'} padding: 8px 12px; font-size: 0.85em; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">
                         🔗 Open Dashboard
                     </button>
                 </div>
@@ -700,6 +710,86 @@ class PrintersManager {
         // Open printer dashboard in new tab (port 80)
         const dashboardUrl = `http://${printerIp}:80`;
         window.open(dashboardUrl, '_blank');
+    }
+
+    async pausePrint(printerId, printerIp) {
+        const printer = this.printers.find(p => p.id === printerId);
+        if (!printer) {
+            alert('Printer not found');
+            return;
+        }
+
+        if (!confirm(`Pause print on ${printer.name}?`)) {
+            return;
+        }
+
+        try {
+            const currentHost = window.location.hostname;
+            const response = await fetch(`http://${currentHost}:3000/api/moonraker/${printerIp}/printer/print/pause`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || data.details || 'Failed to pause print');
+            }
+
+            alert(`Print paused on ${printer.name}`);
+            
+            // Refresh printer status
+            setTimeout(() => {
+                this.checkPrintersStatus();
+            }, 1000);
+        } catch (error) {
+            console.error('Error pausing print:', error);
+            alert(`Failed to pause print: ${error.message}`);
+        }
+    }
+
+    async cancelPrint(printerId, printerIp) {
+        // Close menu
+        const menu = document.getElementById(`menu-${printerId}`);
+        if (menu) menu.style.display = 'none';
+
+        const printer = this.printers.find(p => p.id === printerId);
+        if (!printer) {
+            alert('Printer not found');
+            return;
+        }
+
+        if (!confirm(`Cancel print on ${printer.name}? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const currentHost = window.location.hostname;
+            const response = await fetch(`http://${currentHost}:3000/api/moonraker/${printerIp}/printer/print/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || data.details || 'Failed to cancel print');
+            }
+
+            alert(`Print canceled on ${printer.name}`);
+            
+            // Refresh printer status
+            setTimeout(() => {
+                this.checkPrintersStatus();
+            }, 1000);
+        } catch (error) {
+            console.error('Error canceling print:', error);
+            alert(`Failed to cancel print: ${error.message}`);
+        }
     }
 
     getStateLabel(state) {

@@ -5,27 +5,51 @@
     gap: 10px;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .nav-link {
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: #f8f9fa;
+    color: #495057;
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.3s;
     font-weight: 500;
+    border: 1px solid #dee2e6;
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #e9ecef;
     transform: translateY(-2px);
+    border-color: #667eea;
 }
 
 .nav-link.active {
-    background: rgba(255, 255, 255, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     font-weight: 600;
+    border-color: #667eea;
+}
+
+/* Navigation in header (if used) */
+header .top-nav {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+header .nav-link {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+}
+
+header .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+header .nav-link.active {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
 /* Setup page specific styles */

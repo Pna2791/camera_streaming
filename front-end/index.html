@@ -10,24 +10,27 @@
 <body>
     <div class="container">
         <header>
-            <nav class="top-nav">
-                <a href="index.html" class="nav-link active">📹 Stream</a>
-                <a href="pages/setup.html" class="nav-link">⚙️ Setup</a>
-                <div class="nav-link" id="status">
-                    <span class="status-indicator" id="statusIndicator"></span>
-                    <span id="statusText">Ready to connect</span>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <img src="imgs/avata.jpg" alt="Creator Phan" class="header-logo">
+                    <h2 style="margin: 0;">Creator Phan's Klipper Controller</h2>
                 </div>
-            </nav>
-            <!-- <h1>📹 IP Camera Live Stream</h1>
-            <p class="subtitle">Real-time video streaming via WebRTC</p> -->
+                <nav class="top-nav" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                    <a href="index.html" class="nav-link active">📹 Stream</a>
+                    <a href="pages/setup.html" class="nav-link">⚙️ Setup</a>
+                    <div class="nav-link" id="status">
+                        <span class="status-indicator" id="statusIndicator"></span>
+                        <span id="statusText">Ready to connect</span>
+                    </div>
+                </nav>
+            </div>
         </header>
 
         <div class="main-layout">
             <!-- Left Column: Klipper Printers List -->
             <div class="left-column">
                 <div class="printers-panel">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0;">🖨️ Klipper Printers</h2>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
                         <div style="display: flex; gap: 8px;">
                             <button id="uploadPrintBtn" class="btn btn-primary btn-small" style="padding: 8px 12px; font-size: 0.9em; background: #28a745;">
                                 📤 Upload & Print
@@ -102,6 +105,30 @@
                     ></video>
                     <div class="video-overlay" id="videoOverlay">
                         <p>No stream connected</p>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="contact-info">
+                    <div class="contact-items">
+                        <div class="contact-item">
+                            <span class="contact-label">Contact Information:</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📞</span>
+                            <span class="contact-label">Phone:</span>
+                            <a href="tel:0935864160" class="contact-link">0935864160</a>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">💬</span>
+                            <span class="contact-label">Zalo:</span>
+                            <span class="contact-value">0935864160</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📘</span>
+                            <span class="contact-label">Facebook:</span>
+                            <a href="https://fb.com/pna2791" target="_blank" rel="noopener noreferrer" class="contact-link">fb.com/pna2791</a>
+                        </div>
                     </div>
                 </div>
 
